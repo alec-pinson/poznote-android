@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
 import javax.inject.Inject
 
 data class NoteListUiState(
@@ -24,7 +25,9 @@ class NoteListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val workspaceId: Int = checkNotNull(savedStateHandle["workspaceId"])
+    private val workspaceName: String = URLDecoder.decode(
+        checkNotNull(savedStateHandle["workspaceName"]), "UTF-8"
+    )
     private val folderIdRaw: Int = savedStateHandle["folderId"] ?: -1
     private val folderId: Int? = if (folderIdRaw == -1) null else folderIdRaw
 
@@ -38,7 +41,7 @@ class NoteListViewModel @Inject constructor(
     fun load() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            noteRepository.getNotes(workspaceId, folderId).fold(
+            noteRepository.getNotes(workspaceName, folderId).fold(
                 onSuccess = { notes ->
                     _uiState.value = NoteListUiState(notes = notes)
                 },

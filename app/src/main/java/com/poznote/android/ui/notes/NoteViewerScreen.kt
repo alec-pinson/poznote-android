@@ -68,10 +68,10 @@ fun NoteViewerScreen(
                     uiState.note?.let { note ->
                         IconButton(onClick = { viewModel.toggleFavorite() }) {
                             Icon(
-                                imageVector = if (note.isFavorite) Icons.Filled.Star
+                                imageVector = if (note.favorite) Icons.Filled.Star
                                     else Icons.Outlined.StarBorder,
                                 contentDescription = "Toggle favorite",
-                                tint = if (note.isFavorite) MaterialTheme.colorScheme.primary
+                                tint = if (note.favorite) MaterialTheme.colorScheme.primary
                                     else LocalContentColor.current
                             )
                         }

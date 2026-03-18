@@ -5,7 +5,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,7 +42,7 @@ fun NoteCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                if (note.isFavorite) {
+                if (note.favorite) {
                     Icon(
                         imageVector = Icons.Filled.Star,
                         contentDescription = "Favorite",
@@ -58,9 +57,10 @@ fun NoteCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 NoteTypeBadge(type = note.type)
-                if (note.tags.isNotEmpty()) {
+                val tagList = note.tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                if (tagList.isNotEmpty()) {
                     Text(
-                        text = note.tags.take(3).joinToString(" · "),
+                        text = tagList.take(3).joinToString(" · "),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -68,7 +68,7 @@ fun NoteCard(
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                note.updatedAt?.let { date ->
+                note.updated?.let { date ->
                     Text(
                         text = date.take(10),
                         style = MaterialTheme.typography.labelSmall,

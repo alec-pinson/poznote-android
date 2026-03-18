@@ -22,7 +22,6 @@ import com.poznote.android.ui.components.EmptyState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FolderBrowserScreen(
-    workspaceId: Int,
     workspaceName: String,
     onFolderClick: (FolderDto) -> Unit,
     onAllNotesClick: () -> Unit,
@@ -58,9 +57,7 @@ fun FolderBrowserScreen(
         ) {
             when {
                 uiState.error != null -> EmptyState(message = uiState.error!!)
-                else -> LazyColumn(
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
+                else -> LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
                     item {
                         ListItem(
                             headlineContent = { Text("All Notes") },
@@ -101,14 +98,16 @@ fun FolderBrowserScreen(
 
 @Composable
 private fun FolderItem(folder: FolderDto, onClick: () -> Unit) {
+    // Calculate depth from path (count "/" separators)
+    val depth = folder.path?.count { it == '/' } ?: 0
     ListItem(
         headlineContent = { Text(folder.name) },
         leadingContent = {
-            Box(modifier = Modifier.padding(start = (folder.depth * 16).dp)) {
+            Box(modifier = Modifier.padding(start = (depth * 16).dp)) {
                 Icon(Icons.Filled.Folder, contentDescription = null)
             }
         },
         modifier = Modifier.clickable(onClick = onClick)
     )
-    HorizontalDivider(modifier = Modifier.padding(start = (16 + folder.depth * 16).dp))
+    HorizontalDivider(modifier = Modifier.padding(start = (16 + depth * 16).dp))
 }

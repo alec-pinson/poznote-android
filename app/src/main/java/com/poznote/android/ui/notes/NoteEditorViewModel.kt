@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
 import javax.inject.Inject
 
 data class NoteEditorUiState(
@@ -31,25 +32,24 @@ class NoteEditorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val workspaceId: Int = checkNotNull(savedStateHandle["workspaceId"])
+    private val workspaceName: String = URLDecoder.decode(
+        checkNotNull(savedStateHandle["workspaceName"]), "UTF-8"
+    )
     private val noteIdArg: Int? = savedStateHandle.get<Int>("noteId")?.takeIf { it != -1 }
-    private val noteTypeArg: String = savedStateHandle.get<String>("noteType") ?: "markdown"
+    private val noteTypeArg: String = URLDecoder.decode(
+        savedStateHandle.get<String>("noteType") ?: "markdown", "UTF-8"
+    )
     private val folderIdArg: Int? = savedStateHandle.get<Int>("folderId")?.takeIf { it != -1 }
 
     private val _uiState = MutableStateFlow(
-        NoteEditorUiState(
-            noteId = noteIdArg,
-            type = noteTypeArg
-        )
+        NoteEditorUiState(noteId = noteIdArg, type = noteTypeArg)
     )
     val uiState: StateFlow<NoteEditorUiState> = _uiState.asStateFlow()
 
     private var autoSaveJob: Job? = null
 
     init {
-        if (noteIdArg != null) {
-            loadNote(noteIdArg)
-        }
+        if (noteIdArg != null) loadNote(noteIdArg)
     }
 
     private fun loadNote(id: Int) {
@@ -90,32 +90,26 @@ class NoteEditorViewModel @Inject constructor(
     }
 
     private fun scheduleAutoSave() {
-        val state = _uiState.value
-        if (state.noteId == null) return // New notes need explicit save first
+        if (_uiState.value.noteId == null) return
         autoSaveJob?.cancel()
         autoSaveJob = viewModelScope.launch {
             delay(1000L)
-            save(state.noteId)
+            save()
         }
     }
 
-    fun save(noteId: Int? = _uiState.value.noteId, onSuccess: ((NoteDto) -> Unit)? = null) {
+    fun save(onSuccess: ((NoteDto) -> Unit)? = null) {
         val state = _uiState.value
         viewModelScope.launch {
             _uiState.value = state.copy(isSaving = true)
-            if (noteId != null) {
-                // Update existing
+            if (state.noteId != null) {
                 noteRepository.updateNote(
-                    id = noteId,
+                    id = state.noteId,
                     title = state.title,
                     content = state.content
                 ).fold(
                     onSuccess = { updated ->
-                        _uiState.value = _uiState.value.copy(
-                            noteId = updated.id,
-                            isSaving = false,
-                            error = null
-                        )
+                        _uiState.value = _uiState.value.copy(isSaving = false, error = null)
                         onSuccess?.invoke(updated)
                     },
                     onFailure = { e ->
@@ -126,12 +120,11 @@ class NoteEditorViewModel @Inject constructor(
                     }
                 )
             } else {
-                // Create new
                 noteRepository.createNote(
                     title = state.title.ifBlank { "Untitled" },
                     content = state.content,
                     type = state.type,
-                    workspaceId = workspaceId,
+                    workspaceName = workspaceName,
                     folderId = folderIdArg
                 ).fold(
                     onSuccess = { created ->

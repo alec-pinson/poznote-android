@@ -12,12 +12,12 @@ class NoteRepository @Inject constructor(
     private val api: PoznoteApi
 ) {
     suspend fun getNotes(
-        workspaceId: Int,
+        workspaceName: String,
         folderId: Int? = null,
         favorite: Boolean? = null
     ): Result<List<NoteDto>> = runCatching {
         api.getNotes(
-            workspaceId = workspaceId,
+            workspaceName = workspaceName,
             folderId = folderId,
             favorite = if (favorite == true) 1 else null
         ).notes
@@ -31,7 +31,7 @@ class NoteRepository @Inject constructor(
         title: String,
         content: String,
         type: String,
-        workspaceId: Int,
+        workspaceName: String,
         folderId: Int? = null
     ): Result<NoteDto> = runCatching {
         api.createNote(
@@ -39,7 +39,7 @@ class NoteRepository @Inject constructor(
                 title = title,
                 content = content,
                 type = type,
-                workspaceId = workspaceId,
+                workspace = workspaceName,
                 folderId = folderId
             )
         )
@@ -49,7 +49,7 @@ class NoteRepository @Inject constructor(
         id: Int,
         title: String? = null,
         content: String? = null,
-        tags: List<String>? = null
+        tags: String? = null
     ): Result<NoteDto> = runCatching {
         api.updateNote(id, UpdateNoteRequest(title = title, content = content, tags = tags))
     }
@@ -63,7 +63,7 @@ class NoteRepository @Inject constructor(
     }
 
     suspend fun searchNotes(query: String): Result<List<NoteDto>> = runCatching {
-        api.searchNotes(query).notes
+        api.searchNotes(query).results
     }
 
     suspend fun getTrash(): Result<List<NoteDto>> = runCatching {

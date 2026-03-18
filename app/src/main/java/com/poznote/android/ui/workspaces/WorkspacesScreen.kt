@@ -12,15 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.poznote.android.data.remote.model.WorkspaceDto
 import com.poznote.android.ui.components.EmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkspacesScreen(
-    onWorkspaceClick: (WorkspaceDto) -> Unit,
+    onWorkspaceClick: (String) -> Unit,
     onSearchClick: () -> Unit,
-    onFavoritesClick: (Int) -> Unit,
+    onFavoritesClick: (String) -> Unit,
     onTrashClick: () -> Unit,
     onLogout: () -> Unit,
     viewModel: WorkspacesViewModel = hiltViewModel()
@@ -52,7 +51,7 @@ fun WorkspacesScreen(
                                 text = { Text("Favorites") },
                                 onClick = {
                                     menuExpanded = false
-                                    onFavoritesClick(ws.id)
+                                    onFavoritesClick(ws.name)
                                 }
                             )
                         }
@@ -93,37 +92,21 @@ fun WorkspacesScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(uiState.workspaces) { workspace ->
-                        WorkspaceCard(
-                            workspace = workspace,
-                            onClick = { onWorkspaceClick(workspace) }
-                        )
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onWorkspaceClick(workspace.name) },
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Box(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = workspace.name,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun WorkspaceCard(workspace: WorkspaceDto, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = workspace.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-            if (workspace.noteCount > 0) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${workspace.noteCount} notes",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }

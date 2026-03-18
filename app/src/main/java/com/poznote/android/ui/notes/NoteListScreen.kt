@@ -19,7 +19,7 @@ import com.poznote.android.ui.components.NoteCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteListScreen(
-    workspaceId: Int,
+    workspaceName: String,
     folderId: Int?,
     folderName: String,
     onNoteClick: (Int) -> Unit,
@@ -102,7 +102,7 @@ private fun NoteContextMenu(
         text = {
             Column {
                 TextButton(onClick = onFavorite, modifier = Modifier.fillMaxWidth()) {
-                    Text(if (note.isFavorite) "Remove from Favorites" else "Add to Favorites")
+                    Text(if (note.favorite) "Remove from Favorites" else "Add to Favorites")
                 }
                 TextButton(onClick = onTrash, modifier = Modifier.fillMaxWidth()) {
                     Text("Move to Trash")

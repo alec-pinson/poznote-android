@@ -13,13 +13,12 @@ interface PoznoteApi {
 
     @GET("api/v1/folders")
     suspend fun getFolders(
-        @Query("workspace") workspaceId: Int,
-        @Query("tree") tree: Boolean = false
+        @Query("workspace") workspaceName: String
     ): FolderListResponse
 
     @GET("api/v1/notes")
     suspend fun getNotes(
-        @Query("workspace") workspaceId: Int,
+        @Query("workspace") workspaceName: String,
         @Query("folder_id") folderId: Int? = null,
         @Query("favorite") favorite: Int? = null
     ): NoteListResponse
@@ -43,7 +42,7 @@ interface PoznoteApi {
     suspend fun toggleFavorite(@Path("id") id: Int): NoteDto
 
     @GET("api/v1/notes/search")
-    suspend fun searchNotes(@Query("q") query: String): NoteListResponse
+    suspend fun searchNotes(@Query("q") query: String): SearchResponse
 
     @GET("api/v1/trash")
     suspend fun getTrash(): TrashListResponse

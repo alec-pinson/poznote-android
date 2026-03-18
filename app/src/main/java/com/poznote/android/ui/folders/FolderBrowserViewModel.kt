@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
 import javax.inject.Inject
 
 data class FolderBrowserUiState(
@@ -24,7 +25,9 @@ class FolderBrowserViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val workspaceId: Int = checkNotNull(savedStateHandle["workspaceId"])
+    private val workspaceName: String = URLDecoder.decode(
+        checkNotNull(savedStateHandle["workspaceName"]), "UTF-8"
+    )
 
     private val _uiState = MutableStateFlow(FolderBrowserUiState())
     val uiState: StateFlow<FolderBrowserUiState> = _uiState.asStateFlow()
@@ -36,7 +39,7 @@ class FolderBrowserViewModel @Inject constructor(
     fun load() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            folderRepository.getFolders(workspaceId).fold(
+            folderRepository.getFolders(workspaceName).fold(
                 onSuccess = { folders ->
                     _uiState.value = FolderBrowserUiState(folders = folders)
                 },

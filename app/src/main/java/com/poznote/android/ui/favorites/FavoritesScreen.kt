@@ -17,7 +17,7 @@ import com.poznote.android.ui.components.NoteCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritesScreen(
-    workspaceId: Int,
+    workspaceName: String,
     onNoteClick: (Int) -> Unit,
     onBack: () -> Unit,
     viewModel: FavoritesViewModel = hiltViewModel()

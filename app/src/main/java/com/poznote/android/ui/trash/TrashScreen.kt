@@ -114,7 +114,7 @@ private fun TrashNoteItem(
                     text = note.title.ifBlank { "Untitled" },
                     style = MaterialTheme.typography.titleSmall
                 )
-                note.updatedAt?.let {
+                note.updated?.let {
                     Text(
                         text = it.take(10),
                         style = MaterialTheme.typography.labelSmall,

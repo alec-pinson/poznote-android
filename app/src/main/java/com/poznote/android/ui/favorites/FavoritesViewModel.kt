@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
 import javax.inject.Inject
 
 data class FavoritesUiState(
@@ -24,7 +25,9 @@ class FavoritesViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val workspaceId: Int = checkNotNull(savedStateHandle["workspaceId"])
+    private val workspaceName: String = URLDecoder.decode(
+        checkNotNull(savedStateHandle["workspaceName"]), "UTF-8"
+    )
 
     private val _uiState = MutableStateFlow(FavoritesUiState())
     val uiState: StateFlow<FavoritesUiState> = _uiState.asStateFlow()
@@ -36,7 +39,7 @@ class FavoritesViewModel @Inject constructor(
     fun load() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            noteRepository.getNotes(workspaceId, favorite = true).fold(
+            noteRepository.getNotes(workspaceName, favorite = true).fold(
                 onSuccess = { notes ->
                     _uiState.value = FavoritesUiState(notes = notes)
                 },
@@ -49,9 +52,7 @@ class FavoritesViewModel @Inject constructor(
 
     fun toggleFavorite(noteId: Int) {
         viewModelScope.launch {
-            noteRepository.toggleFavorite(noteId).onSuccess { _ ->
-                load()
-            }
+            noteRepository.toggleFavorite(noteId).onSuccess { load() }
         }
     }
 }

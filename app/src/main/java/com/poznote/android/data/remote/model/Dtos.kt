@@ -12,9 +12,8 @@ data class UserDto(
 
 @JsonClass(generateAdapter = true)
 data class WorkspaceDto(
-    val id: Int,
     val name: String,
-    @Json(name = "note_count") val noteCount: Int = 0
+    val created: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -22,39 +21,39 @@ data class FolderDto(
     val id: Int,
     val name: String,
     @Json(name = "parent_id") val parentId: Int? = null,
-    @Json(name = "workspace_id") val workspaceId: Int = 0,
-    val depth: Int = 0
+    val path: String? = null,
+    val icon: String? = null,
+    @Json(name = "icon_color") val iconColor: String? = null
 )
 
 @JsonClass(generateAdapter = true)
 data class NoteDto(
     val id: Int,
-    val title: String,
+    @Json(name = "heading") val title: String = "",
     val content: String? = null,
-    val type: String = "markdown",
+    val type: String = "note",
     @Json(name = "folder_id") val folderId: Int? = null,
-    @Json(name = "workspace_id") val workspaceId: Int = 0,
-    @Json(name = "is_favorite") val isFavorite: Boolean = false,
-    @Json(name = "is_trashed") val isTrashed: Boolean = false,
-    val tags: List<String> = emptyList(),
-    @Json(name = "updated_at") val updatedAt: String? = null,
-    @Json(name = "created_at") val createdAt: String? = null
+    val workspace: String = "",
+    val favorite: Boolean = false,
+    val tags: String = "",          // comma-separated string from API
+    val updated: String? = null,
+    val created: String? = null
 )
 
 @JsonClass(generateAdapter = true)
 data class CreateNoteRequest(
-    val title: String,
+    @Json(name = "heading") val title: String,
     val content: String = "",
     val type: String = "markdown",
     @Json(name = "folder_id") val folderId: Int? = null,
-    @Json(name = "workspace_id") val workspaceId: Int
+    val workspace: String
 )
 
 @JsonClass(generateAdapter = true)
 data class UpdateNoteRequest(
-    val title: String? = null,
+    @Json(name = "heading") val title: String? = null,
     val content: String? = null,
-    val tags: List<String>? = null
+    val tags: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -70,6 +69,11 @@ data class FolderListResponse(
 @JsonClass(generateAdapter = true)
 data class NoteListResponse(
     val notes: List<NoteDto> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class SearchResponse(
+    val results: List<NoteDto> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)

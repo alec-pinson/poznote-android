@@ -30,7 +30,7 @@ import io.noties.markwon.ext.tasklist.TaskListPlugin
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteEditorScreen(
-    workspaceId: Int,
+    workspaceName: String,
     noteId: Int?,
     noteType: String,
     folderId: Int?,
@@ -68,7 +68,9 @@ fun NoteEditorScreen(
                 actions = {
                     if (uiState.isSaving) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp).padding(end = 4.dp),
+                            modifier = Modifier
+                                .size(24.dp)
+                                .padding(end = 4.dp),
                             strokeWidth = 2.dp
                         )
                     }
@@ -102,12 +104,10 @@ fun NoteEditorScreen(
                 uiState.showPreview && noteType in listOf("markdown", "tasklist") -> {
                     MarkdownPreview(content = uiState.content)
                 }
-                else -> {
-                    ContentEditor(
-                        content = uiState.content,
-                        onContentChange = viewModel::onContentChange
-                    )
-                }
+                else -> ContentEditor(
+                    content = uiState.content,
+                    onContentChange = viewModel::onContentChange
+                )
             }
             uiState.error?.let { error ->
                 Snackbar(

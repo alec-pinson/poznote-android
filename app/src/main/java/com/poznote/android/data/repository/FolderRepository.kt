@@ -9,7 +9,7 @@ import javax.inject.Singleton
 class FolderRepository @Inject constructor(
     private val api: PoznoteApi
 ) {
-    suspend fun getFolders(workspaceId: Int): Result<List<FolderDto>> = runCatching {
-        api.getFolders(workspaceId = workspaceId, tree = false).folders
+    suspend fun getFolders(workspaceName: String): Result<List<FolderDto>> = runCatching {
+        api.getFolders(workspaceName = workspaceName).folders
     }
 }

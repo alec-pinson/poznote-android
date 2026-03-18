@@ -2,7 +2,6 @@ package com.poznote.android.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,11 +17,12 @@ import com.poznote.android.ui.notes.NoteViewerScreen
 import com.poznote.android.ui.search.SearchScreen
 import com.poznote.android.ui.trash.TrashScreen
 import com.poznote.android.ui.workspaces.WorkspacesScreen
-import dagger.hilt.android.EntryPointAccessors
 import androidx.compose.ui.platform.LocalContext
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import java.net.URLDecoder
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -56,14 +56,12 @@ fun AppNavHost() {
 
         composable(Screen.Workspaces.route) {
             WorkspacesScreen(
-                onWorkspaceClick = { workspace ->
-                    navController.navigate(
-                        Screen.FolderBrowser.createRoute(workspace.id, workspace.name)
-                    )
+                onWorkspaceClick = { workspaceName ->
+                    navController.navigate(Screen.FolderBrowser.createRoute(workspaceName))
                 },
                 onSearchClick = { navController.navigate(Screen.Search.route) },
-                onFavoritesClick = { workspaceId ->
-                    navController.navigate(Screen.Favorites.createRoute(workspaceId))
+                onFavoritesClick = { workspaceName ->
+                    navController.navigate(Screen.Favorites.createRoute(workspaceName))
                 },
                 onTrashClick = { navController.navigate(Screen.Trash.route) },
                 onLogout = {
@@ -77,27 +75,26 @@ fun AppNavHost() {
         composable(
             route = Screen.FolderBrowser.route,
             arguments = listOf(
-                navArgument("workspaceId") { type = NavType.IntType },
                 navArgument("workspaceName") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val workspaceId = backStackEntry.arguments?.getInt("workspaceId") ?: return@composable
-            val workspaceName = backStackEntry.arguments?.getString("workspaceName") ?: ""
+            val workspaceName = URLDecoder.decode(
+                backStackEntry.arguments?.getString("workspaceName") ?: "", "UTF-8"
+            )
             FolderBrowserScreen(
-                workspaceId = workspaceId,
-                workspaceName = java.net.URLDecoder.decode(workspaceName, "UTF-8"),
+                workspaceName = workspaceName,
                 onFolderClick = { folder ->
                     navController.navigate(
-                        Screen.NoteList.createRoute(workspaceId, folder.id, folder.name)
+                        Screen.NoteList.createRoute(workspaceName, folder.id, folder.name)
                     )
                 },
                 onAllNotesClick = {
                     navController.navigate(
-                        Screen.NoteList.createRoute(workspaceId, null, "All Notes")
+                        Screen.NoteList.createRoute(workspaceName, null, "All Notes")
                     )
                 },
                 onCreateNote = {
-                    navController.navigate(Screen.NoteEditor.createNewRoute(workspaceId, null))
+                    navController.navigate(Screen.NoteEditor.createNewRoute(workspaceName, null))
                 },
                 onBack = { navController.popBackStack() }
             )
@@ -106,24 +103,28 @@ fun AppNavHost() {
         composable(
             route = Screen.NoteList.route,
             arguments = listOf(
-                navArgument("workspaceId") { type = NavType.IntType },
+                navArgument("workspaceName") { type = NavType.StringType },
                 navArgument("folderId") { type = NavType.IntType },
                 navArgument("folderName") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val workspaceId = backStackEntry.arguments?.getInt("workspaceId") ?: return@composable
+            val workspaceName = URLDecoder.decode(
+                backStackEntry.arguments?.getString("workspaceName") ?: "", "UTF-8"
+            )
             val folderIdRaw = backStackEntry.arguments?.getInt("folderId") ?: -1
             val folderId = if (folderIdRaw == -1) null else folderIdRaw
-            val folderName = backStackEntry.arguments?.getString("folderName") ?: "Notes"
+            val folderName = URLDecoder.decode(
+                backStackEntry.arguments?.getString("folderName") ?: "Notes", "UTF-8"
+            )
             NoteListScreen(
-                workspaceId = workspaceId,
+                workspaceName = workspaceName,
                 folderId = folderId,
-                folderName = java.net.URLDecoder.decode(folderName, "UTF-8"),
+                folderName = folderName,
                 onNoteClick = { noteId ->
                     navController.navigate(Screen.NoteViewer.createRoute(noteId))
                 },
                 onCreateNote = {
-                    navController.navigate(Screen.NoteEditor.createNewRoute(workspaceId, folderId))
+                    navController.navigate(Screen.NoteEditor.createNewRoute(workspaceName, folderId))
                 },
                 onBack = { navController.popBackStack() }
             )
@@ -138,7 +139,7 @@ fun AppNavHost() {
                 noteId = noteId,
                 onEdit = { note ->
                     navController.navigate(
-                        Screen.NoteEditor.createRoute(note.workspaceId, note.id, note.type)
+                        Screen.NoteEditor.createRoute(note.workspace, note.id, note.type)
                     )
                 },
                 onBack = { navController.popBackStack() }
@@ -146,9 +147,9 @@ fun AppNavHost() {
         }
 
         composable(
-            route = "editor/{workspaceId}/{noteId}/{noteType}?folderId={folderId}",
+            route = "editor/{workspaceName}/{noteId}/{noteType}?folderId={folderId}",
             arguments = listOf(
-                navArgument("workspaceId") { type = NavType.IntType },
+                navArgument("workspaceName") { type = NavType.StringType },
                 navArgument("noteId") { type = NavType.IntType },
                 navArgument("noteType") { type = NavType.StringType },
                 navArgument("folderId") {
@@ -157,16 +158,20 @@ fun AppNavHost() {
                 }
             )
         ) { backStackEntry ->
-            val workspaceId = backStackEntry.arguments?.getInt("workspaceId") ?: return@composable
+            val workspaceName = URLDecoder.decode(
+                backStackEntry.arguments?.getString("workspaceName") ?: "", "UTF-8"
+            )
             val noteIdRaw = backStackEntry.arguments?.getInt("noteId") ?: -1
             val noteId = if (noteIdRaw == -1) null else noteIdRaw
-            val noteType = backStackEntry.arguments?.getString("noteType") ?: "markdown"
+            val noteType = URLDecoder.decode(
+                backStackEntry.arguments?.getString("noteType") ?: "markdown", "UTF-8"
+            )
             val folderIdRaw = backStackEntry.arguments?.getInt("folderId") ?: -1
             val folderId = if (folderIdRaw == -1) null else folderIdRaw
             NoteEditorScreen(
-                workspaceId = workspaceId,
+                workspaceName = workspaceName,
                 noteId = noteId,
-                noteType = java.net.URLDecoder.decode(noteType, "UTF-8"),
+                noteType = noteType,
                 folderId = folderId,
                 onBack = { navController.popBackStack() }
             )
@@ -183,11 +188,13 @@ fun AppNavHost() {
 
         composable(
             route = Screen.Favorites.route,
-            arguments = listOf(navArgument("workspaceId") { type = NavType.IntType })
+            arguments = listOf(navArgument("workspaceName") { type = NavType.StringType })
         ) { backStackEntry ->
-            val workspaceId = backStackEntry.arguments?.getInt("workspaceId") ?: return@composable
+            val workspaceName = URLDecoder.decode(
+                backStackEntry.arguments?.getString("workspaceName") ?: "", "UTF-8"
+            )
             FavoritesScreen(
-                workspaceId = workspaceId,
+                workspaceName = workspaceName,
                 onNoteClick = { noteId ->
                     navController.navigate(Screen.NoteViewer.createRoute(noteId))
                 },
